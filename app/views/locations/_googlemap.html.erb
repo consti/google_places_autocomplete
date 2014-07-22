@@ -2,10 +2,10 @@
 
 <script src="http://maps.googleapis.com/maps/api/js?sensor=true&libraries=places" type="text/javascript"></script>
 
-<script type="text/javascript">	
+<script type="text/javascript">
 <!--
   var defaultZoom = 16; // Why zoomed in? Because it looks good.
-  
+
   // create map and add controls
   var mapOptions = {
     center: new google.maps.LatLng(13.731547730050778, 100.56798934936523),
@@ -15,7 +15,7 @@
     scaleControl: false
   };
   var map = new google.maps.Map(document.getElementById('googlemap'),mapOptions);
-	
+
 	// I'm Centering the map in Bangkok
 	// '13.731547730050778'
 	// '100.56798934936523'
@@ -30,8 +30,8 @@
 	// set center point of map to be of the Marker or the Default City
   var centrePoint = new google.maps.LatLng(mylat, mylng);
   map.setCenter(centrePoint);
-  map.setZoom(defaultZoom); 
-	
+  map.setZoom(defaultZoom);
+
 	// add a draggable marker
   marker = new google.maps.Marker({
     map: map,
@@ -47,17 +47,17 @@
       new google.maps.Point(17, 34),
       new google.maps.Size(35, 35));
   marker.setIcon(defaultImage);
-	
+
   google.maps.event.addListener(marker, 'click', toggleBounce);
-	
+
 	// create Info window for marker
   var infowindow = new google.maps.InfoWindow();
-  
+
   // Address Autocomplete
   var input = document.getElementById('location_search');
-  var autocomplete = new google.maps.places.Autocomplete(input);
+  var autocomplete = new google.maps.places.Autocomplete(input, { types: ['(cities)'] });
   autocomplete.bindTo('bounds', map);
-  
+
 	// add a drag listener to the map
 	google.maps.event.addListener(marker, "dragend", function() {
 		var point = marker.getPosition();
@@ -78,7 +78,7 @@
     map.setZoom(16);
 		document.getElementById("location_lat").value = place.geometry.location.lat();
 		document.getElementById("location_lng").value = place.geometry.location.lng();
-		
+
 		// Sets the proper image on the marker. ie. school/hospital marker
 		var image = new google.maps.MarkerImage(
         place.icon,
@@ -102,56 +102,34 @@
 
     infowindow.setContent('<div><strong>' + place.name + '</strong><br>' + address);
     infowindow.open(map, marker);
-    
+
     // Autofill the fields in the form. TODO: improve parsing of the returned JSON data.
     var address = place.address_components;
     var website = place.url;
 
-    if (address[address.length - 1]) {
-      var zipcode = address[address.length - 1].long_name;
+    var componentForm = {
+      // street_number: 'short_name',
+      // route: ['long_name'],
+      locality: ['long_name', 'location_city'],
+      // administrative_area_level_1: ['short_name', 'location_district'],
+      country: ['long_name', 'location_country'],
+      postal_code: ['short_name', 'location_postcode']
     };
-    if (address[address.length - 2]) {
-      var country = address[address.length - 2].long_name;
-    };
-    if (address[address.length - 3]) {
-      var city = address[address.length - 3].long_name;
-    };
-    if (address[address.length - 4]) {
-      var sublocality = address[address.length - 4].long_name;
-    };
-    if (address[0]) {
-      var streetnumber = address[0].long_name;
-    };
-    if (address[1]) {
-      var streetname = address[1].long_name;
-    };
-    if (place.name) {
-      var location_name = place.name;
+
+    for (var i = 0; i < place.address_components.length; i++) {
+      var addressType = place.address_components[i].types[0];
+      if (componentForm[addressType]) {
+        var val = place.address_components[i][componentForm[addressType][0]];
+        document.getElementById(componentForm[addressType][1]).value = val;
+      }
     }
     var formatted_address = place.formatted_address;
     var formatted_phone_number = place.formatted_phone_number;
-    
-    if (zipcode){
-      document.getElementById("location_postcode").value = zipcode;
-    }
-    if (city) {
-      document.getElementById("location_city").value = city;
-    }
-    if (country) {
-      document.getElementById("location_country").value = country;
-    }
-    if (sublocality) {
-      document.getElementById("location_district").value = sublocality;
-    }
-    if (streetname) {
-      document.getElementById("location_address").value = streetname;
-    }
-    if (location_name) {
-      document.getElementById("location_location_name").value = location_name;
-    }
+
     if (formatted_phone_number) {
       document.getElementById("location_phone_number").value = formatted_phone_number;
     }
+
     photos = place.photos;
     $('#place_images').empty();
     for (var i = 0; i < photos.length; i++) {
@@ -159,7 +137,7 @@
       $('#place_images').prepend('<img src="' + url + '"/>');
     }
   });
-  
+
   // This is the function to animate the marker after dropping it.
   function toggleBounce() {
     if (marker.getAnimation() != null) {

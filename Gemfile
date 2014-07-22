@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 
 gem 'rake'
-gem 'rails', '3.2.13'
+gem 'rails'
 gem 'bundler', '>= 1.2.2'
 gem 'sqlite3'
 
